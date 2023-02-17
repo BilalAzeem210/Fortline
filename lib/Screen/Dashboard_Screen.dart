@@ -1,16 +1,20 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Invoice_Details_Screen.dart';
 import 'package:fortline_customer_app/Screen/Login_Screen.dart';
 import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
-
+  late String _userName;
+  DashboardScreen(String userName){
+    this._userName = userName;
+  }
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
@@ -19,13 +23,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String,dynamic>> res = [];
   final Uri _url = Uri.parse('tel://+923342242836');
   final number = '+923342242836';
-
+  var totalRedeem = 0;
   var totalRebate = 0;
   var amount = 0;
   var invoiceNo = 0;
+  var balanceRebate = 0;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  Future<List<Map<String,dynamic>>> getData() async{
 
+  var data;
+  Future<void> getData() async{
+/*
     var cust_Id;
     var firstCollection = await FirebaseFirestore.instance.collection('Invoice').get();
     var secondCollection = await FirebaseFirestore.instance.collection('Customers').get();
@@ -59,8 +66,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     print("TotalAmount:$amount");
     print("Totalinvoice: $invoiceNo");
 
-    return res;
-
+    return res;*/
+    try{
+      print("getting invoices from dashboard");
+      var response = await http.get(Uri.http("142.132.194.26:1251","/ords/fortline/reg/invoice",{
+        "username" : widget._userName
+      }));
+      print(jsonDecode(response.body.toString()).toString());
+      if(response.statusCode == 200){
+        var responseData = jsonDecode(response.body.toString())["items"];
+        data = responseData;
+        print("invoices");
+        print(responseData.toString());
+        invoiceNo = data.length;
+        print("totinv: ${invoiceNo}");
+        //int totalRebate = 0;
+        for(int i = 0; i < data.length; i++){
+          amount = data[i]["invamt"] + amount;
+          if(data[i]["rewrdamt"] != null){
+            totalRebate = data[i]["rewrdamt"] + totalRebate;
+            String? status = data[i]["invstsid"];
+            if(status != null){
+              totalRedeem = data[i]["rewrdamt"] + totalRedeem;
+            }
+          }
+        }
+        balanceRebate = totalRebate - totalRedeem;
+      }
+    }
+    catch(e){
+      print(e.toString());
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error fetching invoices")));
+    }
   }
 
   @override
@@ -82,7 +119,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      backgroundColor: const Color(0xffce0505),
+      backgroundColor:  Colors.white,
       appBar: AppBar(
         actions:  [
 
@@ -103,12 +140,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     Text('Call',style: TextStyle(
                       fontFamily: "SpaceGrotesk",
-                    ),),
+                    ),
+                    ),
                   ],
                 ),),
                 ),
 
-                DropdownMenuItem(value: 'logout',child: Container(child: Row(
+                DropdownMenuItem(value: 'logout',child: Container(
+                  child: Row(
                   children: const <Widget>[
                     Icon(Icons.exit_to_app,color: Color(0xFF0f388a),),
 
@@ -116,9 +155,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                     Text('logout',style: TextStyle(
                       fontFamily: "SpaceGrotesk",
-                    ),),
+                    ),
+                    ),
                   ],
-                ),),
+                ),
+                ),
                 ),
               ],
               onChanged: (itemIdentifier) {
@@ -132,7 +173,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         UrlLauncher.launchUrl(_url);
 
                 }
-                },),
+                },
+            ),
           ),
 
 
@@ -140,7 +182,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
           backgroundColor: const Color(0xffce0505),
           title: const Text('Dashboard',style: TextStyle(
             fontFamily: "SpaceGrotesk",
-          ),),
+          ),
+          ),
       ),
       body:
       SingleChildScrollView(
@@ -154,11 +197,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: Align(
                     alignment: Alignment.topLeft,
                     child: Text('WELCOME',style: TextStyle(
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
                       fontSize: 30,
                       fontFamily: "SpaceGrotesk",
-                    ),),
+                    ),
+                    ),
                   ),
                 ),
               const SizedBox(height: 10,),
@@ -167,15 +211,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.all(6.0),
                 child: InkWell(
                   onTap: (){
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const InvoiceDetailScreen()));
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InvoiceDetailScreen(widget._userName)));
                   },
                   child: Container(
                     height: screenHeight * 18 / 100,
                     width: screenWidth * 100 / 100,
                         decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(color: Colors.red),
-                          ],
+                            boxShadow:  [
+                              BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                            ],
                           borderRadius: BorderRadius.circular(20)
                         ),
                     child: Card(
@@ -183,22 +227,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         borderRadius: BorderRadius.circular(15)
                       ),
                       elevation: 5,
-                      color: Colors.black26,
+                      color: Colors.white70,
                       child: Column(
                         children: [
                          const SizedBox(height: 8,),
-                          Image.asset("assets/images/rebate.png"),
+                          Image.asset("assets/images/discount.png"),
                           const Text('Total Rebate',style: TextStyle(
                             fontWeight: FontWeight.w300,
                             fontSize: 18,
                             fontFamily: "SpaceGrotesk",
-                            color: Colors.white,
-                          ),),
-                        Text(totalRebate.toString(),style: const TextStyle(
+                            color: Colors.black,
+                          ),
+                          ),
+                        Text(NumberFormat.decimalPattern().format(totalRebate),style: const TextStyle(
                           fontWeight: FontWeight.w300,
                           fontSize: 18,
                           fontFamily: "SpaceGrotesk",
-                          color: Colors.white,
+                          color: Colors.black,
                         ),
                         ),
                         ],
@@ -216,33 +261,35 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         height: screenHeight * 20 / 100,
                         width: screenWidth * 45 / 100,
                         decoration: BoxDecoration(
-                            boxShadow: [
-                              BoxShadow(color: Colors.red),
+                            boxShadow:  [
+                              BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
                             ],
                             borderRadius: BorderRadius.circular(20)
                         ),
-                        child: Card(
+                       child: Card(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15),
                         ),
                         elevation: 5,
-                        color: Colors.black26,
+                        color: Colors.white70,
                         child: Column(
                           children: [
                             const SizedBox(height: 15,),
-                            Image.asset("assets/images/invoiceicon2.png"),
+                            Image.asset("assets/images/invoices3.png"),
                             const Text('Total Invoices',style: TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),),
-                            Text(invoiceNo.toString(),style: const TextStyle(
+                              color: Colors.black,
+                            ),
+                            ),
+                            Text(NumberFormat.decimalPattern().format(invoiceNo),style: const TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),)
+                              color: Colors.black,
+                            ),
+                            ),
                           ],
                         ),
                       ),
@@ -252,8 +299,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: screenHeight * 20 / 100,
                       width: screenWidth * 45 / 100,
                       decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(color: Colors.red),
+                          boxShadow:  [
+                            BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
                           ],
                           borderRadius: BorderRadius.circular(20)
                       ),
@@ -262,23 +309,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         elevation: 5,
-                        color: Colors.black26,
+                        color: Colors.white70,
                         child: Column(
                           children: [
                             const SizedBox(height: 15,),
-                            Image.asset("assets/images/amounticon.png"),
+                            Image.asset("assets/images/rupees.png"),
                             const Text('Total Amount',style: TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),),
-                            Text(amount.toString(),style: const TextStyle(
+                              color: Colors.black,
+                            ),
+                            ),
+                            Text(NumberFormat.decimalPattern().format(amount),style: const TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),)
+                              color: Colors.black,
+                            ),
+                            ),
 
                           ],
                         ),
@@ -296,8 +345,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: screenHeight * 20 / 100,
                       width: screenWidth * 45 / 100,
                       decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(color: Colors.red),
+                          boxShadow:  [
+                            BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
                           ],
                           borderRadius: BorderRadius.circular(20)
                       ),
@@ -306,23 +355,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         elevation: 5,
-                        color: Colors.black26,
+                        color: Colors.white70,
                         child: Column(
                           children: [
                             const SizedBox(height: 15,),
-                            Image.asset("assets/images/redeemicon.png"),
+                            Image.asset("assets/images/giftredeem.png"),
                             const Text('Total Redeem',style: TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),),
-                            const Text('20,000',style: TextStyle(
+                              color: Colors.black,
+                            ),
+                            ),
+                            Text(NumberFormat.decimalPattern().format(totalRedeem),style: TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),)
+                              color: Colors.black,
+                            ),
+                            ),
                           ],
                         ),
                       ),
@@ -332,8 +383,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       height: screenHeight * 20 / 100,
                       width: screenWidth * 45 / 100,
                       decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(color: Colors.red),
+                          boxShadow:  [
+                            BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
                           ],
                           borderRadius: BorderRadius.circular(20)
                       ),
@@ -342,23 +393,25 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         elevation: 5,
-                        color: Colors.black26,
+                        color: Colors.white70,
                         child: Column(
                           children: [
                             const SizedBox(height: 15,),
-                            Image.asset("assets/images/balanceicon.png"),
+                            Image.asset("assets/images/balancerebate.png"),
                             const Text('Balance Rebate',style: TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),),
-                            const Text('0',style: TextStyle(
+                              color: Colors.black,
+                            ),
+                            ),
+                            Text(NumberFormat.decimalPattern().format(balanceRebate),style: const TextStyle(
                               fontWeight: FontWeight.w300,
                               fontSize: 18,
                               fontFamily: "SpaceGrotesk",
-                              color: Colors.white,
-                            ),)
+                              color: Colors.black,
+                            ),
+                            ),
 
                           ],
                         ),

@@ -1,8 +1,12 @@
+import 'dart:convert';
+
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Login_Screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
+import 'package:fortline_customer_app/Screen/get_fcm.dart';
+import 'package:http/http.dart' as http;
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
 
@@ -20,8 +24,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
   String _password = "";
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+
   @override
   Widget build(BuildContext context) {
+
+
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
@@ -72,7 +79,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                           children: <Widget>[
                             const SizedBox(height: 10,),
-                            const Text('SignUp',
+                            const Text('Sign Up',
                               style: TextStyle(
                                 fontSize: 25,
                                 fontWeight: FontWeight.bold,
@@ -180,8 +187,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         _password = val!;
                                       },
                                       validator: (val){
-                                        if(val!.length < 6){
-                                          return "Please provide a password of atleast 6 character";
+                                        if(val!.length < 3){
+                                          return "Please provide a password of atleast 3 character";
                                         }
                                       },
                                       obscureText: _hidePassword.value,
@@ -212,7 +219,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: InkWell(
                                 onTap: () async{
                               _validateAdmin();
-                             try {
+                             /*try {
                                if (_formState.currentState!.validate()) {
                                   _isLoading = true;
                                   setState(() {
@@ -254,7 +261,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                  _isLoading = false;
                                });
                                print(e.toString());
-                             }
+                             }*/
                             },child: Container(
                               width: 150,
                               height: 40,
@@ -294,10 +301,79 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     );
   }
-  void _validateAdmin(){
+  void _validateAdmin() async{
     bool isValid = _formState.currentState!.validate();
     if(isValid){
       _formState.currentState!.save();
+      _isLoading = true;
+      setState(() {
+
+      });
+      try{
+        print("inside try");
+        String? Token = await FirebaseMessaging.instance.getToken();
+        var response = await http.post(Uri.http("142.132.194.26:1251","/ords/fortline/reg/post")
+            ,headers: <String,String>{
+              'Content-Type': 'application/json; charset=UTF-8',
+            }
+           , body:jsonEncode(<String,String?>{
+              "usrname" : _name.toUpperCase(),
+              "insby" : _email,
+              "password" : _password,
+              "mobile" : mobileNo.toString(),
+              "token" : Token
+            })
+        );
+
+        print(response.statusCode);
+        var responseData = jsonDecode(response.body.toString());
+        if(responseData.containsKey("successMsg")){
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),content: Text(responseData["successMsg"], style:  TextStyle(
+            color: Colors.white,
+          ),
+          ),
+          ),
+          );
+        }
+        else if(responseData.containsKey("msg")) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),content: Text(
+            responseData["msg"],
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          ),
+          );
+        }
+        else{
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),content: Text(
+            "You are already registered",
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          ),
+          );
+        }
+
+
+        _isLoading = false;
+        setState(() {
+
+        });
+        print("signup");
+        //print(responseData);
+      }
+      catch(e){
+        print(e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString(),style: TextStyle(
+          color: Color(0xffce0505),
+        ),)));
+        _isLoading = false;
+        setState(() {
+
+        });
+      }
     }
   }
 }

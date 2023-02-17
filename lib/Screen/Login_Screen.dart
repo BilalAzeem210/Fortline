@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Dashboard_Screen.dart';
 import 'SignUp_Screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:http/http.dart' as http;
 
 class LoginView extends StatefulWidget {
   const LoginView({Key? key}) : super(key: key);
-
+  static String userName = "";
   @override
   State<LoginView> createState() => _LoginViewState();
 }
@@ -14,7 +17,7 @@ class _LoginViewState extends State<LoginView> {
   final _formState = GlobalKey<FormState>();
   final _hidePassword = ValueNotifier<bool>(true);
   bool _isLoading = false;
-  String _email = "";
+  String _userName = "";
   String _password = "";
   final FirebaseAuth _auth = FirebaseAuth.instance;
   @override
@@ -71,7 +74,7 @@ class _LoginViewState extends State<LoginView> {
 
                                 children: <Widget>[
                                  const SizedBox(height: 10,),
-                                  const Text('LogIn',
+                                  const Text('Login',
                                  style: TextStyle(
                                    fontSize: 25,
                                    fontWeight: FontWeight.bold,
@@ -82,18 +85,19 @@ class _LoginViewState extends State<LoginView> {
                                   Flexible(flex: 1,child: Padding(padding: const EdgeInsets.symmetric(horizontal: 15,),
                                     child: TextFormField(
                                       validator: (val){
-                                        if(val!.isEmpty || !val.contains("@")){
-                                          return "Please provide valid email";
+                                        if(val!.isEmpty){
+                                          return "Please provide valid username";
                                         }
                                         return null;
                                       },
                                       onSaved: (val){
-                                        _email = val!;
+                                        _userName = val!.toUpperCase();
+                                        LoginView.userName = _userName;
                                       },
-                                      keyboardType: TextInputType.emailAddress,
+                                      keyboardType: TextInputType.text,
                                       decoration: InputDecoration(
 
-                                          hintText: "Email",
+                                          hintText: "Username",
                                           fillColor: const Color(0xfff6f7fa),
                                           filled: true,
                                           focusedBorder: OutlineInputBorder(
@@ -121,8 +125,8 @@ class _LoginViewState extends State<LoginView> {
                                               _password = val!;
                                             },
                                             validator: (val){
-                                              if(val!.length < 6){
-                                                return "Please provide a password of atleast 6 character";
+                                              if(val!.length < 3){
+                                                return "Please provide a password of least 3 character";
                                               }
                                               return null;
                                             },
@@ -150,9 +154,9 @@ class _LoginViewState extends State<LoginView> {
                                   ,
                                   const SizedBox(height: 30,),
                                   Flexible(flex: 1,child: InkWell(
-                                    onTap: () async{
+                                    onTap: (){
                                     _validateAdmin();
-                                  try{
+                                  /*try{
                                     if(_formState.currentState!.validate()){
                                       _isLoading = true;
                                       setState(() {
@@ -185,7 +189,7 @@ class _LoginViewState extends State<LoginView> {
                                       _isLoading = false;
                                     });
                                     print(e.toString());
-                                      }
+                                      }*/
 
 
                                     },
@@ -241,10 +245,59 @@ class _LoginViewState extends State<LoginView> {
    
     );
   }
-  void _validateAdmin(){
+  void _validateAdmin() async{
     bool isValid = _formState.currentState!.validate();
     if(isValid){
       _formState.currentState!.save();
+      _isLoading = true;
+      setState(() {
+
+      });
+      try {
+        var response = await http.get(
+            Uri.http("142.132.194.26:1251", "/ords/fortline/reg/cstreg", {
+              "usrname": _userName.toUpperCase(),
+              "password": _password
+            }));
+        print("username: ${_userName}");
+        print("response");
+        print(jsonDecode(response.body.toString()));
+        var record = jsonDecode(response.body.toString());
+        if (record["items"].length == 0) {
+          _isLoading = false;
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            backgroundColor: const Color(0xfff75a27),
+              content: Text("Please enter correct credientials", style: TextStyle(
+                color: Colors.white,
+              ),)));
+          setState(() {
+
+          });
+        }
+        else {
+          var usrName = record["items"][0]["usrname"];
+          var userPassword = record["items"][0]["password"];
+          Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: (context) => DashboardScreen(_userName),
+            ),
+          );
+          /*if(usrName == _userName && _password == userPassword){
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(_userName),
+          ),
+          );
+        }*/
+        }
+      }
+      catch(e){
+        print(e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),
+            content: Text("Could not login",style: TextStyle(
+          color: Colors.white,
+        ),)));
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 }
