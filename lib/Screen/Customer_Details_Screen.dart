@@ -92,7 +92,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
           children: [
             Card(
               child: SizedBox(
-                height: screenHeight * 75 / 100,
+                height: screenHeight * 90 / 100,
                 width: screenWidth * 100 / 100,
 
                 child: Column(

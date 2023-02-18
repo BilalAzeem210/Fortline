@@ -31,7 +31,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   var data;
-  Future<void> getData() async{
+  Future<bool> _getData() async{
 /*
     var cust_Id;
     var firstCollection = await FirebaseFirestore.instance.collection('Invoice').get();
@@ -68,7 +68,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return res;*/
     try{
-      print("getting invoices from dashboard");
       var response = await http.get(Uri.http("142.132.194.26:1251","/ords/fortline/reg/invoice",{
         "username" : widget._userName
       }));
@@ -93,24 +92,20 @@ class _DashboardScreenState extends State<DashboardScreen> {
         }
         balanceRebate = totalRebate - totalRedeem;
       }
+      return true;
     }
     catch(e){
       print(e.toString());
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error fetching invoices")));
     }
+    return false;
   }
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    Future.delayed(Duration.zero,() async{
-      await getData();
-      setState(() {
-
-      });
-    });
-
+    print("inside dashboard");
 
   }
 
@@ -189,238 +184,258 @@ class _DashboardScreenState extends State<DashboardScreen> {
       SingleChildScrollView(
         child: SafeArea(
 
-          child: Column(
-            children:  [
-             const SizedBox(height: 15,),
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: Text('WELCOME',style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                      fontSize: 30,
-                      fontFamily: "SpaceGrotesk",
-                    ),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 10,),
+          child: FutureBuilder<bool>(
+            future: _getData(),
+            builder: (ctx, snapshot){
+              if(snapshot.hasData){
+                if(snapshot.data!){
+                   return Column(
+                     children:  [
+                       const SizedBox(height: 10,),
+                       const Padding(
+                         padding: EdgeInsets.all(8.0),
+                         child: Align(
+                           alignment: Alignment.topLeft,
+                           child: Text('WELCOME',style: TextStyle(
+                             fontWeight: FontWeight.w700,
+                             color: Colors.black,
+                             fontSize: 30,
+                             fontFamily: "SpaceGrotesk",
+                           ),
+                           ),
+                         ),
 
-              Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: InkWell(
-                  onTap: (){
-                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InvoiceDetailScreen(widget._userName)));
-                  },
-                  child: Container(
-                    height: screenHeight * 18 / 100,
-                    width: screenWidth * 100 / 100,
-                        decoration: BoxDecoration(
-                            boxShadow:  [
-                              BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
-                            ],
-                          borderRadius: BorderRadius.circular(20)
-                        ),
-                    child: Card(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)
-                      ),
-                      elevation: 5,
-                      color: Colors.white70,
-                      child: Column(
-                        children: [
-                         const SizedBox(height: 8,),
-                          Image.asset("assets/images/discount.png"),
-                          const Text('Total Rebate',style: TextStyle(
-                            fontWeight: FontWeight.w300,
-                            fontSize: 18,
-                            fontFamily: "SpaceGrotesk",
-                            color: Colors.black,
-                          ),
-                          ),
-                        Text(NumberFormat.decimalPattern().format(totalRebate),style: const TextStyle(
-                          fontWeight: FontWeight.w300,
-                          fontSize: 18,
-                          fontFamily: "SpaceGrotesk",
-                          color: Colors.black,
-                        ),
-                        ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 5,),
-              Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: Row(
-                  children: [
-                      Container(
-                        height: screenHeight * 20 / 100,
-                        width: screenWidth * 45 / 100,
-                        decoration: BoxDecoration(
-                            boxShadow:  [
-                              BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
-                            ],
-                            borderRadius: BorderRadius.circular(20)
-                        ),
-                       child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        elevation: 5,
-                        color: Colors.white70,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 15,),
-                            Image.asset("assets/images/invoices3.png"),
-                            const Text('Total Invoices',style: TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
-                            Text(NumberFormat.decimalPattern().format(invoiceNo),style: const TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ),
-                    const SizedBox(width: 20,),
-                    Container(
-                      height: screenHeight * 20 / 100,
-                      width: screenWidth * 45 / 100,
-                      decoration: BoxDecoration(
-                          boxShadow:  [
-                            BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
-                          ],
-                          borderRadius: BorderRadius.circular(20)
-                      ),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        elevation: 5,
-                        color: Colors.white70,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 15,),
-                            Image.asset("assets/images/rupees.png"),
-                            const Text('Total Amount',style: TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
-                            Text(NumberFormat.decimalPattern().format(amount),style: const TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
+                       ),
 
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 5,),
-              Padding(
-                padding: const EdgeInsets.all(6.0),
-                child: Row(
-                  children: [
-                    Container(
-                      height: screenHeight * 20 / 100,
-                      width: screenWidth * 45 / 100,
-                      decoration: BoxDecoration(
-                          boxShadow:  [
-                            BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
-                          ],
-                          borderRadius: BorderRadius.circular(20)
-                      ),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        elevation: 5,
-                        color: Colors.white70,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 15,),
-                            Image.asset("assets/images/giftredeem.png"),
-                            const Text('Total Redeem',style: TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
-                            Text(NumberFormat.decimalPattern().format(totalRedeem),style: TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 20,),
-                    Container(
-                      height: screenHeight * 20 / 100,
-                      width: screenWidth * 45 / 100,
-                      decoration: BoxDecoration(
-                          boxShadow:  [
-                            BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
-                          ],
-                          borderRadius: BorderRadius.circular(20)
-                      ),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        elevation: 5,
-                        color: Colors.white70,
-                        child: Column(
-                          children: [
-                            const SizedBox(height: 15,),
-                            Image.asset("assets/images/balancerebate.png"),
-                            const Text('Balance Rebate',style: TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
-                            Text(NumberFormat.decimalPattern().format(balanceRebate),style: const TextStyle(
-                              fontWeight: FontWeight.w300,
-                              fontSize: 18,
-                              fontFamily: "SpaceGrotesk",
-                              color: Colors.black,
-                            ),
-                            ),
+                       const SizedBox(height: 10,),
+                       Padding(
+                         padding: const EdgeInsets.all(6.0),
+                         child: InkWell(
+                           onTap: (){
+                             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InvoiceDetailScreen(widget._userName)));
+                           },
+                           child: Container(
+                             height: screenHeight * 20 / 100,
+                             width: screenWidth * 100 / 100,
+                             decoration: BoxDecoration(
+                                 boxShadow:  [
+                                   BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                 ],
+                                 borderRadius: BorderRadius.circular(20)
+                             ),
+                             child: Card(
+                               shape: RoundedRectangleBorder(
+                                   borderRadius: BorderRadius.circular(15)
+                               ),
+                               elevation: 5,
+                               color: Colors.white70,
+                               child: Center(
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   children: [
+                                     const SizedBox(height: 8,),
+                                     Image.asset("assets/images/discount.png"),
+                                     const Text('Total Rebate',style: TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                     Text(NumberFormat.decimalPattern().format(totalRebate),style: const TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ),
+                           ),
+                         ),
+                       ),
+                       const SizedBox(height: 5,),
+                       Padding(
+                         padding: const EdgeInsets.all(6.0),
+                         child: Row(
+                           children: [
+                             Container(
+                               height: screenHeight * 23 / 100,
+                               width: screenWidth * 45 / 100,
+                               decoration: BoxDecoration(
+                                   boxShadow:  [
+                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                   ],
+                                   borderRadius: BorderRadius.circular(20)
+                               ),
+                               child: Card(
+                                 shape: RoundedRectangleBorder(
+                                   borderRadius: BorderRadius.circular(15),
+                                 ),
+                                 elevation: 5,
+                                 color: Colors.white70,
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   children: [
+                                     const SizedBox(height: 7,),
+                                     Image.asset("assets/images/invoices3.png"),
+                                     const Text('Total Invoices',style: TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                     Text(NumberFormat.decimalPattern().format(invoiceNo),style: const TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ),
+                             const SizedBox(width: 20,),
+                             Container(
+                               height: screenHeight * 23 / 100,
+                               width: screenWidth * 45 / 100,
+                               decoration: BoxDecoration(
+                                   boxShadow:  [
+                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                   ],
+                                   borderRadius: BorderRadius.circular(20)
+                               ),
+                               child: Card(
+                                 shape: RoundedRectangleBorder(
+                                   borderRadius: BorderRadius.circular(15),
+                                 ),
+                                 elevation: 5,
+                                 color: Colors.white70,
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   children: [
+                                     const SizedBox(height: 7,),
+                                     Image.asset("assets/images/rupees.png"),
+                                     const Text('Total Amount',style: TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                     Text(NumberFormat.decimalPattern().format(amount),style: const TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
 
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+                                   ],
+                                 ),
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
+                       const SizedBox(height: 5,),
+                       Padding(
+                         padding: const EdgeInsets.all(6.0),
+                         child: Row(
+                           children: [
+                             Container(
+                               height: screenHeight * 23 / 100,
+                               width: screenWidth * 45 / 100,
+                               decoration: BoxDecoration(
+                                   boxShadow:  [
+                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                   ],
+                                   borderRadius: BorderRadius.circular(20)
+                               ),
+                               child: Card(
+                                 shape: RoundedRectangleBorder(
+                                   borderRadius: BorderRadius.circular(15),
+                                 ),
+                                 elevation: 5,
+                                 color: Colors.white70,
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   children: [
+                                     const SizedBox(height: 7,),
+                                     Image.asset("assets/images/giftredeem.png"),
+                                     const Text('Total Redeem',style: TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                     Text(NumberFormat.decimalPattern().format(totalRedeem),style: const TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
+                             ),
+                             const SizedBox(width: 20,),
+                             Container(
+                               height: screenHeight * 23 / 100,
+                               width: screenWidth * 45 / 100,
+                               decoration: BoxDecoration(
+                                   boxShadow:  [
+                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                   ],
+                                   borderRadius: BorderRadius.circular(20)
+                               ),
+                               child: Card(
+                                 shape: RoundedRectangleBorder(
+                                   borderRadius: BorderRadius.circular(15),
+                                 ),
+                                 elevation: 5,
+                                 color: Colors.white70,
+                                 child: Column(
+                                   mainAxisAlignment: MainAxisAlignment.center,
+                                   children: [
+                                     const SizedBox(height: 7,),
+                                     Image.asset("assets/images/balancerebate.png"),
+                                     const Text('Balance Rebate',style: TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+                                     Text(NumberFormat.decimalPattern().format(balanceRebate),style: const TextStyle(
+                                       fontWeight: FontWeight.w300,
+                                       fontSize: 18,
+                                       fontFamily: "SpaceGrotesk",
+                                       color: Colors.black,
+                                     ),
+                                     ),
+
+                                   ],
+                                 ),
+                               ),
+                             ),
+                           ],
+                         ),
+                       ),
+                     ],
+                   );
+                }
+              }
+              return Center(
+                child: CircularProgressIndicator(),
+              );
+            },
           ),
         ),
       ),
