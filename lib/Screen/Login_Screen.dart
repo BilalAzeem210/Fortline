@@ -9,7 +9,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 class LoginView extends StatefulWidget {
-  static const int maxFailedLoadAttempts = 3;
   const LoginView({Key? key}) : super(key: key);
   static String email = "";
   @override
@@ -17,6 +16,7 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
+  static const int maxFailedLoadAttempts = 3;
   final _formState = GlobalKey<FormState>();
   final _hidePassword = ValueNotifier<bool>(true);
   bool _isLoading = false;
