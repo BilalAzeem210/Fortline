@@ -2,9 +2,12 @@
     package="com.sc.fortline_customer_app"
     >
    <application
-        android:label="fortline_customer_app"
+        android:label="Fortline"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/fortline_icon"
+
+
+
 
        >
         <activity

@@ -9,10 +9,10 @@ import 'package:fortline_customer_app/Screen/Login_Screen.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 class InvoiceDetailScreen extends StatefulWidget {
-  String _userName = "";
+  String _email = "";
   dynamic _invoiceData = [];
   InvoiceDetailScreen(String userName){
-    this._userName = userName;
+    this._email = userName;
   }
   @override
   State<InvoiceDetailScreen> createState() => _InvoiceDetailScreenState();
@@ -32,7 +32,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
         leading: BackButton(
           onPressed: (){
             Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx){
-              return DashboardScreen(widget._userName);
+              return DashboardScreen(widget._email);
             }));
           },
         ),
@@ -56,7 +56,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                             itemBuilder: (ctx, index){
                               return  InkWell(
                                 onTap: (){
-                                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CustomerDetailsScreen(record: widget._invoiceData[index]!, customerName: widget._userName),));
+                                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => CustomerDetailsScreen(record: widget._invoiceData[index]!, customerName: widget._email),));
                                 },
                                 child:  Card(
 
@@ -135,7 +135,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
     try{
       //print("getting invoices invoice details:");
       var response = await http.get(Uri.http("142.132.194.26:1251","/ords/fortline/reg/invoice",{
-        "username" : widget._userName
+        "insby" : widget._email
       }));
       print(jsonDecode(response.body.toString()).toString());
       if(response.statusCode == 200){

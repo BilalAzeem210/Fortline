@@ -11,9 +11,9 @@ import 'package:intl/intl.dart';
 
 
 class DashboardScreen extends StatefulWidget {
-  late String _userName;
-  DashboardScreen(String userName){
-    this._userName = userName;
+  late String _email;
+  DashboardScreen(String email){
+    this._email = email;
   }
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -21,8 +21,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String,dynamic>> res = [];
-  final Uri _url = Uri.parse('tel://+923342242836');
-  final number = '+923342242836';
+  final Uri _url = Uri.parse('tel://021111992999');
+  //final number = '+923342242836';
   var totalRedeem = 0;
   var totalRebate = 0;
   var amount = 0;
@@ -69,7 +69,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return res;*/
     try{
       var response = await http.get(Uri.http("142.132.194.26:1251","/ords/fortline/reg/invoice",{
-        "username" : widget._userName
+        "insby" : widget._email
       }));
       print(jsonDecode(response.body.toString()).toString());
       if(response.statusCode == 200){
@@ -212,7 +212,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                          padding: const EdgeInsets.all(6.0),
                          child: InkWell(
                            onTap: (){
-                             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InvoiceDetailScreen(widget._userName)));
+                             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => InvoiceDetailScreen(widget._email)));
                            },
                            child: Container(
                              height: screenHeight * 20 / 100,

@@ -1,14 +1,17 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Dashboard_Screen.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'SignUp_Screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 class LoginView extends StatefulWidget {
+  static const int maxFailedLoadAttempts = 3;
   const LoginView({Key? key}) : super(key: key);
-  static String userName = "";
+  static String email = "";
   @override
   State<LoginView> createState() => _LoginViewState();
 }
@@ -17,9 +20,76 @@ class _LoginViewState extends State<LoginView> {
   final _formState = GlobalKey<FormState>();
   final _hidePassword = ValueNotifier<bool>(true);
   bool _isLoading = false;
-  String _userName = "";
+  String _email = "";
   String _password = "";
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  static final AdRequest request = AdRequest(
+    keywords: <String>['foo', 'bar'],
+    contentUrl: 'http://foo.com/bar.html',
+    nonPersonalizedAds: true,
+  );
+
+  InterstitialAd? _interstitialAd;
+  int _numInterstitialLoadAttempts = 0;
+
+  RewardedAd? _rewardedAd;
+  int _numRewardedLoadAttempts = 0;
+
+  RewardedInterstitialAd? _rewardedInterstitialAd;
+  int _numRewardedInterstitialLoadAttempts = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _createInterstitialAd();
+  }
+
+  void _createInterstitialAd() {
+    InterstitialAd.load(
+        adUnitId: Platform.isAndroid
+            ? 'ca-app-pub-3940256099942544/1033173712'
+            : 'ca-app-pub-3940256099942544/4411468910',
+        request: request,
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            print('$ad loaded');
+            _interstitialAd = ad;
+            _numInterstitialLoadAttempts = 0;
+            _interstitialAd!.setImmersiveMode(true);
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            print('InterstitialAd failed to load: $error.');
+            _numInterstitialLoadAttempts += 1;
+            _interstitialAd = null;
+            if (_numInterstitialLoadAttempts < maxFailedLoadAttempts) {
+              _createInterstitialAd();
+            }
+          },
+        ));
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd == null) {
+      print('Warning: attempt to show interstitial before loaded.');
+      return;
+    }
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (InterstitialAd ad) =>
+          print('ad onAdShowedFullScreenContent.'),
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+        print('$ad onAdDismissedFullScreenContent.');
+        ad.dispose();
+        _createInterstitialAd();
+      },
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+        print('$ad onAdFailedToShowFullScreenContent: $error');
+        ad.dispose();
+        _createInterstitialAd();
+      },
+    );
+    _interstitialAd!.show();
+    _interstitialAd = null;
+  }
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -91,13 +161,13 @@ class _LoginViewState extends State<LoginView> {
                                         return null;
                                       },
                                       onSaved: (val){
-                                        _userName = val!.toUpperCase();
-                                        LoginView.userName = _userName;
+                                        _email = val!;
+                                        LoginView.email = _email;
                                       },
                                       keyboardType: TextInputType.text,
                                       decoration: InputDecoration(
 
-                                          hintText: "Username",
+                                          hintText: "Email",
                                           fillColor: const Color(0xfff6f7fa),
                                           filled: true,
                                           focusedBorder: OutlineInputBorder(
@@ -256,10 +326,10 @@ class _LoginViewState extends State<LoginView> {
       try {
         var response = await http.get(
             Uri.http("142.132.194.26:1251", "/ords/fortline/reg/cstreg", {
-              "usrname": _userName.toUpperCase(),
+              "insby": _email,
               "password": _password
             }));
-        print("username: ${_userName}");
+        print("email: ${_email}");
         print("response");
         print(jsonDecode(response.body.toString()));
         var record = jsonDecode(response.body.toString());
@@ -275,10 +345,10 @@ class _LoginViewState extends State<LoginView> {
           });
         }
         else {
-          var usrName = record["items"][0]["usrname"];
+          var usrName = record["items"][0]["insby"];
           var userPassword = record["items"][0]["password"];
           Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: (context) => DashboardScreen(_userName),
+            MaterialPageRoute(builder: (context) => DashboardScreen(_email),
             ),
           );
           /*if(usrName == _userName && _password == userPassword){
