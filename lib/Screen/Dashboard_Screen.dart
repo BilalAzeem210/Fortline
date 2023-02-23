@@ -1,14 +1,13 @@
 import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Invoice_Details_Screen.dart';
 import 'package:fortline_customer_app/Screen/Login_Screen.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
 
 class DashboardScreen extends StatefulWidget {
   late String _email;
@@ -23,14 +22,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String,dynamic>> res = [];
   final Uri _url = Uri.parse('tel://021111992999');
   //final number = '+923342242836';
+  static bool showAds = true;
   var totalRedeem = 0;
   var totalRebate = 0;
   var amount = 0;
   var invoiceNo = 0;
   var balanceRebate = 0;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  InterstitialAd? _interstitialAd;
+  int _numInterstitialLoadAttempts = 0;
   var data;
+  Future<bool>? _getFutureData;
+  static const int maxFailedLoadAttempts = 3;
+
+  /*void _createInterstitialAd() async{
+    await InterstitialAd.load(
+        adUnitId: Platform.isAndroid
+            ? 'ca-app-pub-4101133175325037/2788711604'
+            : 'ca-app-pub-3940256099942544/4411468910',
+        request: AdRequest(
+          contentUrl: "https://myshop.pk/pub/media/catalog/product/cache/26f8091d81cea4b38d820a1d1a4f62be/m/i/microsoft-surface-laptop-go2-myshop-3_1_1.jpg"
+        ),
+        adLoadCallback: InterstitialAdLoadCallback(
+          onAdLoaded: (InterstitialAd ad) {
+            print('$ad loaded');
+            _interstitialAd = ad;
+            _numInterstitialLoadAttempts = 0;
+            _interstitialAd!.setImmersiveMode(true);
+            _showInterstitialAd();
+          },
+          onAdFailedToLoad: (LoadAdError error) {
+            print('InterstitialAd failed to load: $error.');
+            _numInterstitialLoadAttempts += 1;
+            _interstitialAd = null;
+            if (_numInterstitialLoadAttempts < maxFailedLoadAttempts) {
+              _createInterstitialAd();
+            }
+          },
+        ));
+  }
+
+  void _showInterstitialAd() {
+    if (_interstitialAd == null) {
+      print('Warning: attempt to show interstitial before loaded.');
+      return;
+    }
+    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdShowedFullScreenContent: (InterstitialAd ad) =>
+          print('ad onAdShowedFullScreenContent.'),
+      onAdDismissedFullScreenContent: (InterstitialAd ad) {
+        print('$ad onAdDismissedFullScreenContent.');
+        showAds = false;
+        setState(() {
+          _getFutureData = _getData();
+        });
+        ad.dispose();
+      },
+      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
+        print('$ad onAdFailedToShowFullScreenContent: $error');
+        ad.dispose();
+        _createInterstitialAd();
+      },
+      *//*onAdClicked: (InterstitialAd ad){
+        ad.dispose();
+      }*//*
+    );
+    _interstitialAd!.show();
+  }*/
   Future<bool> _getData() async{
 /*
     var cust_Id;
@@ -79,7 +137,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
         print(responseData.toString());
         invoiceNo = data.length;
         print("totinv: ${invoiceNo}");
-        //int totalRebate = 0;
         for(int i = 0; i < data.length; i++){
           amount = data[i]["invamt"] + amount;
           if(data[i]["rewrdamt"] != null){
@@ -106,7 +163,79 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // TODO: implement initState
     super.initState();
     print("inside dashboard");
+    if(showAds) {
+      var image;
+      Future.delayed(Duration.zero, () async{
+        try{
+          var response = await http.get(Uri.http("142.132.194.26:1251","/ords/fortline/reg/notification"));
+          var responseData = jsonDecode(response.body.toString());
+          if(responseData["items"][0]["contents_blob"] != null){
+           image = base64Decode(responseData["items"][0]["contents_blob"]);
+           showModalBottomSheet(isScrollControlled: true,context: context, builder: (ctx){
+             return SizedBox(
+               height: MediaQuery.of(context).size.height * 96 / 100,
+               child: Column(
+                 children: <Widget>[
+                   Container(
+                     width: double.infinity,
 
+                     child: Stack(
+                       alignment: Alignment.topRight,
+                       children: <Widget>[
+
+                         Ink(
+                           child: InkWell(
+                             onTap: (){
+                               print("circle");
+                               showAds = false;
+                               Navigator.of(context).pop();
+                             },
+                             child: Container(
+
+                               width: 25,
+                               height: 25,
+                               child: Icon(
+                                 Icons.close,
+                                 size: 25,
+                                 color: Colors.white,
+                               ),
+                               decoration: BoxDecoration(
+                                   color: Colors.black,
+                                   borderRadius: BorderRadius.circular(60)
+                               ),
+                             ),
+                           ),
+                         ),
+                       ],
+                     ),
+                   ),
+                   SizedBox(height: 15,),
+                   Container(
+                     height: 300,
+                     decoration: BoxDecoration(
+                       borderRadius: BorderRadius.circular(15),
+
+                     ),
+                     child: Center(child: Image.memory(image)),
+                   ),
+                 ],
+               ),
+             );
+           },
+               backgroundColor: Color(0xffce0505).withOpacity(0.6),
+               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
+           );
+          }
+        }
+        catch(e){
+          print(e.toString());
+        }
+      });
+    }
+    _getFutureData = _getData();
+    setState(() {
+
+      });
   }
 
   @override
@@ -159,7 +288,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
               onChanged: (itemIdentifier) {
                 if(itemIdentifier == 'logout'){
-                  FirebaseAuth.instance.signOut();
+                  showAds = true;
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginView(),
                   ),
                   );
@@ -185,7 +314,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         child: SafeArea(
 
           child: FutureBuilder<bool>(
-            future: _getData(),
+            future: _getFutureData,
             builder: (ctx, snapshot){
               if(snapshot.hasData){
                 if(snapshot.data!){
@@ -234,15 +363,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                    mainAxisAlignment: MainAxisAlignment.center,
                                    children: [
                                      const SizedBox(height: 8,),
-                                     Image.asset("assets/images/discount.png"),
-                                     const Text('Total Rebate',style: TextStyle(
+                                     Image.asset("assets/images/invoices3.png"),
+                                     const Text('Total Invoices',style: TextStyle(
                                        fontWeight: FontWeight.w300,
                                        fontSize: 18,
                                        fontFamily: "SpaceGrotesk",
                                        color: Colors.black,
                                      ),
                                      ),
-                                     Text(NumberFormat.decimalPattern().format(totalRebate),style: const TextStyle(
+                                     Text(NumberFormat.decimalPattern().format(invoiceNo),style: const TextStyle(
                                        fontWeight: FontWeight.w300,
                                        fontSize: 18,
                                        fontFamily: "SpaceGrotesk",
@@ -280,21 +409,22 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                    mainAxisAlignment: MainAxisAlignment.center,
                                    children: [
                                      const SizedBox(height: 7,),
-                                     Image.asset("assets/images/invoices3.png"),
-                                     const Text('Total Invoices',style: TextStyle(
+                                     Image.asset("assets/images/discount.png"),
+                                     const Text('Total Rebate',style: TextStyle(
                                        fontWeight: FontWeight.w300,
                                        fontSize: 18,
                                        fontFamily: "SpaceGrotesk",
                                        color: Colors.black,
                                      ),
                                      ),
-                                     Text(NumberFormat.decimalPattern().format(invoiceNo),style: const TextStyle(
+                                     Text(NumberFormat.decimalPattern().format(totalRebate),style: const TextStyle(
                                        fontWeight: FontWeight.w300,
                                        fontSize: 18,
                                        fontFamily: "SpaceGrotesk",
                                        color: Colors.black,
                                      ),
                                      ),
+
                                    ],
                                  ),
                                ),

@@ -48,6 +48,8 @@ dependencies:
   overlay_support: ^2.1.0
   flutter_local_notifications: ^13.0.0
   google_mobile_ads: ^2.3.0
+  modal_bottom_sheet: ^3.0.0-pre
+  badges: ^3.0.2
 
 dev_dependencies:
   flutter_test:

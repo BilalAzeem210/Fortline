@@ -72,149 +72,168 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     double screenHeight = MediaQuery.of(context).size.height;
     double screenWidth = MediaQuery.of(context).size.width;
     var formattedDate =  DateFormat('dd-MM-yyyy');
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async{
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx){
+          return InvoiceDetailScreen(widget.customerName);
+        }));
+        return true;
+      },
+      child: Scaffold(
+          appBar: AppBar(
+          title:  const Text('Invoice Details',style: TextStyle(
+            fontFamily: "SpaceGrotesk",
+          ),),
+          backgroundColor: const Color(0xffce0505),
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Card(
+                child: SizedBox(
+                  height: screenHeight * 90 / 100,
+                  width: screenWidth * 100 / 100,
 
-      appBar: AppBar(
-        leading: BackButton(onPressed: (){
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (ctx){
-            return InvoiceDetailScreen(widget.customerName);
-          }));
-        },),
-        title:  const Text('Invoice Details',style: TextStyle(
-          fontFamily: "SpaceGrotesk",
-        ),),
-        backgroundColor: const Color(0xffce0505),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Card(
-              child: SizedBox(
-                height: screenHeight * 90 / 100,
-                width: screenWidth * 100 / 100,
-
-                child: Column(
-                  children: [
-                    const SizedBox(height: 10,),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Align(
-                            alignment: Alignment.topLeft,
-                            child: Text('Date:',style:TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: Text(formattedDate.format(DateTime.parse(widget.record['invdt'])) ,style: const TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6,),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children:  [
-                          const Align(
-                            alignment: Alignment.topLeft,
-                            child: Text('Invoice No:',style:TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: Text('${widget.record['invno_c']}',style: const TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 6,),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                         const Align(
-                            alignment: Alignment.topLeft,
-                            child: Text('Invoice Amount:',style:TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: Text('${NumberFormat.decimalPattern().format(widget.record['invamt'])}',style:const TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6,),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Align(
-                            alignment: Alignment.topLeft,
-                            child: Text('Rebate:',style:TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: Text('${widget.record['rewrdamt'] != null ? NumberFormat.decimalPattern().format(widget.record['rewrdamt']) : 0}',style:const TextStyle(
-                              fontSize: 16,
-                              fontFamily: "SpaceGrotesk",
-                            ),),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 6,),
-                     const Padding(
-                       padding: EdgeInsets.all(6.0),
-                       child: Align(
-                         alignment: Alignment.topLeft,
-                         child: Text('Redeem By:',style: TextStyle(
-                           fontSize: 16,
-                           fontFamily: "SpaceGrotesk",
-
-                         ),),
-                       ),
-                     ) ,
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children:  [
-                            Align(
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 10,),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Align(
                               alignment: Alignment.topLeft,
+                              child: Text('Date:',style:TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: Text(formattedDate.format(DateTime.parse(widget.record['invdt'])) ,style: const TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 6,),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children:  [
+                            const Align(
+                              alignment: Alignment.topLeft,
+                              child: Text('Invoice No:',style:TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: Text('${widget.record['invno_c']}',style: const TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 6,),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                           const Align(
+                              alignment: Alignment.topLeft,
+                              child: Text('Invoice Amount:',style:TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: Text('${NumberFormat.decimalPattern().format(widget.record['invamt'])}',style:const TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 6,),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Align(
+                              alignment: Alignment.topLeft,
+                              child: Text('Rebate:',style:TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                            Align(
+                              alignment: Alignment.topRight,
+                              child: Text('${widget.record['rewrdamt'] != null ? NumberFormat.decimalPattern().format(widget.record['rewrdamt']) : 0}',style:const TextStyle(
+                                fontSize: 16,
+                                fontFamily: "SpaceGrotesk",
+                              ),),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 6,),
+                       const Padding(
+                         padding: EdgeInsets.all(6.0),
+                         child: Align(
+                           alignment: Alignment.topLeft,
+                           child: Text('Redeem By:',style: TextStyle(
+                             fontSize: 16,
+                             fontFamily: "SpaceGrotesk",
+
+                           ),),
+                         ),
+                       ) ,
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children:  [
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: ElevatedButton(
+                                  onPressed: widget.record['rewrdamt'] == null || widget.record['invstsid'] != null  ? null : (){
+                                    _updateStatus("C");
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xffce0505),
+                                  ),
+                                  child: const Text('By Cash',style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                    fontFamily: "SpaceGrotesk",
+
+                                  ),),
+                                )  ,
+                              ),
+
+                            Align(
+                              alignment: Alignment.topRight,
                               child: ElevatedButton(
-                                onPressed: widget.record['rewrdamt'] == null || widget.record['invstsid'] != null  ? null : (){
-                                  _updateStatus("C");
+                                onPressed: widget.record['rewrdamt'] == null || widget.record['invstsid'] != null ? null :(){
+                                  _updateStatus("A");
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xffce0505),
                                 ),
-                                child: const Text('By Cash',style: TextStyle(
+                                child: const Text('By Adjustment',style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white,
                                   fontFamily: "SpaceGrotesk",
@@ -222,76 +241,59 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                 ),),
                               )  ,
                             ),
-
-                          Align(
-                            alignment: Alignment.topRight,
-                            child: ElevatedButton(
-                              onPressed: widget.record['rewrdamt'] == null || widget.record['invstsid'] != null ? null :(){
-                                _updateStatus("A");
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xffce0505),
-                              ),
-                              child: const Text('By Adjustment',style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                                fontFamily: "SpaceGrotesk",
-
-                              ),),
-                            )  ,
-                          ),
-                        ],
-                      ),
-
-                    ),
-
-                    const SizedBox(height: 10,),
-
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: TextFormField(
-                        controller: commentsController,
-                        maxLines: 5,
-                        decoration: InputDecoration(
-                          hintText: "Comments",
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide( color: Color(0xffce0505) ),
-                          ),
+                          ],
                         ),
 
                       ),
-                    ),
-                    SizedBox(height: 5,),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Align(
-                        alignment: Alignment.topRight,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xffce0505),
-                          ),
-                          onPressed: (){
-                            print("Comments : ${commentsController.text}");
-                            _updateStatus(statuss);
-                          },
-                          child: const Text('Submit',style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontFamily: "SpaceGrotesk",
 
-                          ),),
+                      const SizedBox(height: 10,),
+
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: TextFormField(
+                          controller: commentsController,
+                          maxLines: 5,
+                          decoration: InputDecoration(
+                            hintText: "Comments",
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide( color: Color(0xffce0505) ),
+                            ),
+                          ),
+
                         ),
                       ),
-                    )
-                  ],
+                      SizedBox(height: 5,),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Align(
+                          alignment: Alignment.topRight,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xffce0505),
+                            ),
+                            onPressed: (){
+                              print("Comments : ${commentsController.text}");
+                              _updateStatus(statuss);
+                            },
+                            child: const Text('Submit',style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontFamily: "SpaceGrotesk",
+
+                            ),),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
                 ),
               ),
-            ),
 
-          ],
-        ),
-      )
+            ],
+          ),
+        )
+      ),
     );
   }
 

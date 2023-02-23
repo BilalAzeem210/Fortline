@@ -4,17 +4,19 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'Screen/ForGroundLocalNotification.dart';
 import 'Screen/get_fcm.dart';
 import 'Screen/Splash_Screen.dart';
 import 'package:http/http.dart' as http;
 
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+/*Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   print("Handling a background message codewaa: ${message.messageId}");
-}
+}*/
 
 Future<void> main() async{
   WidgetsFlutterBinding.ensureInitialized();
+  //MobileAds.instance.initialize();
   await Firebase.initializeApp();
 
  /*AwesomeNotifications().initialize(null, [
@@ -53,11 +55,11 @@ class MyApp extends StatelessWidget {
     getFcmToken().then((token){
       print("fcm token: $token");
     });
-    LocalNotification.initialize();
+    /*LocalNotification.initialize();
     // For Forground State
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       LocalNotification.showNotification(message);
-    });
+    });*/
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Fortline Customer App',

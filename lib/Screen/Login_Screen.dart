@@ -16,80 +16,23 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  static const int maxFailedLoadAttempts = 3;
   final _formState = GlobalKey<FormState>();
   final _hidePassword = ValueNotifier<bool>(true);
   bool _isLoading = false;
   String _email = "";
   String _password = "";
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  static final AdRequest request = AdRequest(
+  /*static final AdRequest request = AdRequest(
     keywords: <String>['foo', 'bar'],
     contentUrl: 'http://foo.com/bar.html',
     nonPersonalizedAds: true,
-  );
-
-  InterstitialAd? _interstitialAd;
-  int _numInterstitialLoadAttempts = 0;
-
-  RewardedAd? _rewardedAd;
-  int _numRewardedLoadAttempts = 0;
-
-  RewardedInterstitialAd? _rewardedInterstitialAd;
-  int _numRewardedInterstitialLoadAttempts = 0;
-
+  );*/
   @override
   void initState() {
     super.initState();
-    _createInterstitialAd();
   }
 
-  void _createInterstitialAd() {
-    InterstitialAd.load(
-        adUnitId: Platform.isAndroid
-            ? 'ca-app-pub-3940256099942544/1033173712'
-            : 'ca-app-pub-3940256099942544/4411468910',
-        request: request,
-        adLoadCallback: InterstitialAdLoadCallback(
-          onAdLoaded: (InterstitialAd ad) {
-            print('$ad loaded');
-            _interstitialAd = ad;
-            _numInterstitialLoadAttempts = 0;
-            _interstitialAd!.setImmersiveMode(true);
-          },
-          onAdFailedToLoad: (LoadAdError error) {
-            print('InterstitialAd failed to load: $error.');
-            _numInterstitialLoadAttempts += 1;
-            _interstitialAd = null;
-            if (_numInterstitialLoadAttempts < maxFailedLoadAttempts) {
-              _createInterstitialAd();
-            }
-          },
-        ));
-  }
 
-  void _showInterstitialAd() {
-    if (_interstitialAd == null) {
-      print('Warning: attempt to show interstitial before loaded.');
-      return;
-    }
-    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (InterstitialAd ad) =>
-          print('ad onAdShowedFullScreenContent.'),
-      onAdDismissedFullScreenContent: (InterstitialAd ad) {
-        print('$ad onAdDismissedFullScreenContent.');
-        ad.dispose();
-        _createInterstitialAd();
-      },
-      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-        print('$ad onAdFailedToShowFullScreenContent: $error');
-        ad.dispose();
-        _createInterstitialAd();
-      },
-    );
-    _interstitialAd!.show();
-    _interstitialAd = null;
-  }
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
