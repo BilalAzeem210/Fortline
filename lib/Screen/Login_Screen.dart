@@ -1,11 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Dashboard_Screen.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'SignUp_Screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 class LoginView extends StatefulWidget {
@@ -21,12 +17,7 @@ class _LoginViewState extends State<LoginView> {
   bool _isLoading = false;
   String _email = "";
   String _password = "";
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  /*static final AdRequest request = AdRequest(
-    keywords: <String>['foo', 'bar'],
-    contentUrl: 'http://foo.com/bar.html',
-    nonPersonalizedAds: true,
-  );*/
+
   @override
   void initState() {
     super.initState();
@@ -107,7 +98,7 @@ class _LoginViewState extends State<LoginView> {
                                         _email = val!;
                                         LoginView.email = _email;
                                       },
-                                      keyboardType: TextInputType.text,
+                                      keyboardType: TextInputType.emailAddress,
                                       decoration: InputDecoration(
 
                                           hintText: "Email",
@@ -163,48 +154,13 @@ class _LoginViewState extends State<LoginView> {
                                             ),
                                           );
                                         },
-                                      )))
-                                  ,
+                                      ),
+                                  ),
+                                  ),
                                   const SizedBox(height: 30,),
                                   Flexible(flex: 1,child: InkWell(
                                     onTap: (){
                                     _validateAdmin();
-                                  /*try{
-                                    if(_formState.currentState!.validate()){
-                                      _isLoading = true;
-                                      setState(() {
-
-                                      });
-                                      final userCredential = await _auth.signInWithEmailAndPassword(
-                                          email: _email,
-                                          password: _password
-                                      );
-                                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const DashboardScreen(),
-                                      ),
-                                      );
-                                      print("sigin successful");
-                                      setState(() {
-                                        _isLoading = false;
-                                      });
-
-                                    }
-
-                                  }
-                                      catch(e){
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(content: Text('Please Enter Correct User Credential Or SignUp', style: TextStyle(
-                                    color: Colors.red,
-                                    ),
-                                    ),
-                                    ),
-                                    );
-                                    setState(() {
-                                      _isLoading = false;
-                                    });
-                                    print(e.toString());
-                                      }*/
-
-
                                     },
                                     child: Container(
                                     width: 150,
@@ -239,10 +195,12 @@ class _LoginViewState extends State<LoginView> {
                                     ),
                                     child: const Center(child: Text("SignUp", style: TextStyle(
                                         color: Colors.white
-                                    ),),),
+                                    ),
+                                    ),
+                                    ),
                                   ),
                                   ),
-                                  )
+                                  ),
 
                                 ],
                               ),
@@ -278,8 +236,8 @@ class _LoginViewState extends State<LoginView> {
         var record = jsonDecode(response.body.toString());
         if (record["items"].length == 0) {
           _isLoading = false;
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            backgroundColor: const Color(0xfff75a27),
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            backgroundColor: Color(0xfff75a27),
               content: Text("Please enter correct credientials", style: TextStyle(
                 color: Colors.white,
               ),)));
@@ -294,16 +252,11 @@ class _LoginViewState extends State<LoginView> {
             MaterialPageRoute(builder: (context) => DashboardScreen(_email),
             ),
           );
-          /*if(usrName == _userName && _password == userPassword){
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => DashboardScreen(_userName),
-          ),
-          );
-        }*/
         }
       }
       catch(e){
         print(e.toString());
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Color(0xfff75a27),
             content: Text("Could not login",style: TextStyle(
           color: Colors.white,
         ),)));

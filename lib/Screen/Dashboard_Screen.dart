@@ -1,13 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Invoice_Details_Screen.dart';
 import 'package:fortline_customer_app/Screen/Login_Screen.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 
 class DashboardScreen extends StatefulWidget {
   late String _email;
@@ -21,110 +21,27 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   List<Map<String,dynamic>> res = [];
   final Uri _url = Uri.parse('tel://021111992999');
-  //final number = '+923342242836';
   static bool showAds = true;
   var totalRedeem = 0;
   var totalRebate = 0;
   var amount = 0;
   var invoiceNo = 0;
   var balanceRebate = 0;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  InterstitialAd? _interstitialAd;
-  int _numInterstitialLoadAttempts = 0;
   var data;
   Future<bool>? _getFutureData;
-  static const int maxFailedLoadAttempts = 3;
-
-  /*void _createInterstitialAd() async{
-    await InterstitialAd.load(
-        adUnitId: Platform.isAndroid
-            ? 'ca-app-pub-4101133175325037/2788711604'
-            : 'ca-app-pub-3940256099942544/4411468910',
-        request: AdRequest(
-          contentUrl: "https://myshop.pk/pub/media/catalog/product/cache/26f8091d81cea4b38d820a1d1a4f62be/m/i/microsoft-surface-laptop-go2-myshop-3_1_1.jpg"
-        ),
-        adLoadCallback: InterstitialAdLoadCallback(
-          onAdLoaded: (InterstitialAd ad) {
-            print('$ad loaded');
-            _interstitialAd = ad;
-            _numInterstitialLoadAttempts = 0;
-            _interstitialAd!.setImmersiveMode(true);
-            _showInterstitialAd();
-          },
-          onAdFailedToLoad: (LoadAdError error) {
-            print('InterstitialAd failed to load: $error.');
-            _numInterstitialLoadAttempts += 1;
-            _interstitialAd = null;
-            if (_numInterstitialLoadAttempts < maxFailedLoadAttempts) {
-              _createInterstitialAd();
-            }
-          },
-        ));
-  }
-
-  void _showInterstitialAd() {
-    if (_interstitialAd == null) {
-      print('Warning: attempt to show interstitial before loaded.');
-      return;
+  Future<String> _getPath() async{
+    Directory? directory = await getExternalStorageDirectory();
+    if(directory != null){
+      print("path: ${directory.path}");
+      return directory.path;
     }
-    _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdShowedFullScreenContent: (InterstitialAd ad) =>
-          print('ad onAdShowedFullScreenContent.'),
-      onAdDismissedFullScreenContent: (InterstitialAd ad) {
-        print('$ad onAdDismissedFullScreenContent.');
-        showAds = false;
-        setState(() {
-          _getFutureData = _getData();
-        });
-        ad.dispose();
-      },
-      onAdFailedToShowFullScreenContent: (InterstitialAd ad, AdError error) {
-        print('$ad onAdFailedToShowFullScreenContent: $error');
-        ad.dispose();
-        _createInterstitialAd();
-      },
-      *//*onAdClicked: (InterstitialAd ad){
-        ad.dispose();
-      }*//*
-    );
-    _interstitialAd!.show();
-  }*/
+    else{
+      directory = await getApplicationDocumentsDirectory();
+      print("path: ${directory.path}");
+      return directory.path;
+    }
+}
   Future<bool> _getData() async{
-/*
-    var cust_Id;
-    var firstCollection = await FirebaseFirestore.instance.collection('Invoice').get();
-    var secondCollection = await FirebaseFirestore.instance.collection('Customers').get();
-
-    var customer = secondCollection.docs;
-    print("Customer: ${customer}");
-    for(int i = 0 ; i < customer.length; i++ ){
-      var record = customer[i].data();
-      if(record['Email'] == _auth.currentUser!.email){
-        cust_Id = customer[i].reference.id;
-        print("Customer Id: ${cust_Id}");
-        break;
-      }
-    }
-
-    var invoices = firstCollection.docs;
-    for(int i = 0; i < invoices.length; i++)
-    {
-      var record = invoices[i].data();
-      if(cust_Id == record["Customer_Id"]){
-        res.add(record);
-        print("Invoice Data : $res");
-        totalRebate = record['Rebate'] + totalRebate;
-        amount = record['Invoice_Amount'] + amount;
-        invoiceNo++;
-
-      }
-
-    }
-    print("TotalRebate:$totalRebate");
-    print("TotalAmount:$amount");
-    print("Totalinvoice: $invoiceNo");
-
-    return res;*/
     try{
       var response = await http.get(Uri.http("142.132.194.26:1251","/ords/fortline/reg/invoice",{
         "insby" : widget._email
@@ -153,7 +70,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
     catch(e){
       print(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error fetching invoices")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error fetching invoices")));
     }
     return false;
   }
@@ -211,7 +128,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                    ),
                    SizedBox(height: 15,),
                    Container(
-                     height: 300,
+                     height: MediaQuery.of(context).size.height * 90 / 100,
+                     width: MediaQuery.of(context).size.width * 90 / 100,
                      decoration: BoxDecoration(
                        borderRadius: BorderRadius.circular(15),
 
@@ -222,7 +140,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                ),
              );
            },
-               backgroundColor: Color(0xffce0505).withOpacity(0.6),
+               backgroundColor: Colors.transparent,
                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
            );
           }
@@ -269,7 +187,19 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   ],
                 ),),
                 ),
+                DropdownMenuItem(value: 'Download Invoices',child: Container(child: Row(
+                  children: const <Widget>[
+                    Icon(Icons.download,color: Color(0xFF0f388a),),
 
+                    SizedBox(width: 8,),
+
+                    Text('Download Invoices',style: TextStyle(
+                      fontFamily: "SpaceGrotesk",
+                    ),
+                    ),
+                  ],
+                ),),
+                ),
                 DropdownMenuItem(value: 'logout',child: Container(
                   child: Row(
                   children: const <Widget>[
@@ -286,12 +216,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 ),
               ],
-              onChanged: (itemIdentifier) {
+              onChanged: (itemIdentifier) async{
                 if(itemIdentifier == 'logout'){
                   showAds = true;
                   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginView(),
                   ),
                   );
+                }
+                else if(itemIdentifier == 'Download Invoices'){
+                  if(data.length > 0) {
+                    final PdfDocument document = PdfDocument();
+// Add a new page to the document.
+                    final PdfPage page = document.pages.add();
+// Create a PDF grid class to add tables.
+                    final PdfGrid grid = PdfGrid();
+                    grid.columns.add(count: 5);
+                    final PdfGridRow headerRow = grid.headers.add(1)[0];
+                    headerRow.cells[0].value = 'Invoice ID';
+                    headerRow.cells[1].value = 'Invoice Date';
+                    headerRow.cells[2].value = 'Invoice Amount';
+                    headerRow.cells[3].value = 'Rebate Amount';
+                    headerRow.cells[4].value = 'Redeemed by';
+                    headerRow.style = PdfGridRowStyle(
+                        backgroundBrush: PdfBrushes.dimGray,
+                        textPen: PdfPens.lightGoldenrodYellow,
+                        textBrush: PdfBrushes.darkOrange,
+                        font: PdfStandardFont(PdfFontFamily.timesRoman, 12));
+                    PdfGridRow row;
+                    grid.style.cellPadding = PdfPaddings(left: 5, top: 5);
+                    for (int i = 0; i <= data.length; i++) {
+                      row = grid.rows.add();
+                      if(i == data.length){
+                        row.cells[0].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
+                        row.cells[1].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
+                        row.cells[2].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
+                        row.cells[3].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
+                        row.cells[4].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
+                        row.cells[3].value = "Total Amount: ${amount.toString()}";
+                        row.cells[4].value = "Balance: ${balanceRebate.toString()}";
+                        break;
+                      }
+                      else if(i % 2 == 0){
+                        row.style = PdfGridRowStyle(
+                            backgroundBrush: PdfBrushes.lightGoldenrodYellow,
+                            textPen: PdfPens.indianRed,
+                            textBrush: PdfBrushes.lightYellow,
+                            font: PdfStandardFont(PdfFontFamily.timesRoman, 12));
+                      }
+                      else{
+                        row.style = PdfGridRowStyle(
+                            backgroundBrush: PdfBrushes.dimGray,
+                            textPen: PdfPens.lightGoldenrodYellow,
+                            textBrush: PdfBrushes.darkOrange,
+                            font: PdfStandardFont(PdfFontFamily.timesRoman, 12));
+                      }
+                      var record = data[i];
+                      row.cells[0].value = record["invno_c"];
+                      String date = record["invdt"];
+                      date = date.substring(0, date.indexOf("T"));
+                      row.cells[1].value = date;
+                      row.cells[2].value = record["invamt"].toString();
+                      row.cells[3].value = record["rewrdamt"].toString();
+                      var redeemed = record["invstsid"];
+                      if(redeemed != null){
+                        row.cells[4].value = redeemed;
+                      }
+                      else{
+                        row.cells[4].value = "-";
+                      }
+                    }
+                    grid.draw(
+                        page: page,
+                        bounds: Rect.fromLTWH(
+                            0, 0, page.getClientSize().width, page.getClientSize().height));
+                    File pdfFile = File((await _getPath()) + "/${DateTime.now().toString()}_invoices.pdf");
+                    await pdfFile.create();
+                    pdfFile.writeAsBytes(await document.save());
+// Dispose the document.
+                document.dispose();
+                  }
                 }
                 else if(itemIdentifier == 'Call') {
                         UrlLauncher.launchUrl(_url);
@@ -348,7 +351,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                              width: screenWidth * 100 / 100,
                              decoration: BoxDecoration(
                                  boxShadow:  [
-                                   BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                   BoxShadow(color: const Color(0xff7a7979,).withOpacity(0.1)),
                                  ],
                                  borderRadius: BorderRadius.circular(20)
                              ),
@@ -395,7 +398,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                width: screenWidth * 45 / 100,
                                decoration: BoxDecoration(
                                    boxShadow:  [
-                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                     BoxShadow(color: const Color(0xff7a7979,).withOpacity(0.1)),
                                    ],
                                    borderRadius: BorderRadius.circular(20)
                                ),
@@ -435,7 +438,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                width: screenWidth * 45 / 100,
                                decoration: BoxDecoration(
                                    boxShadow:  [
-                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                     BoxShadow(color: const Color(0xff7a7979,).withOpacity(0.1)),
                                    ],
                                    borderRadius: BorderRadius.circular(20)
                                ),
@@ -482,7 +485,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                width: screenWidth * 45 / 100,
                                decoration: BoxDecoration(
                                    boxShadow:  [
-                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                     BoxShadow(color: const Color(0xff7a7979,).withOpacity(0.1)),
                                    ],
                                    borderRadius: BorderRadius.circular(20)
                                ),
@@ -521,7 +524,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                width: screenWidth * 45 / 100,
                                decoration: BoxDecoration(
                                    boxShadow:  [
-                                     BoxShadow(color: Color(0xff7a7979,).withOpacity(0.1)),
+                                     BoxShadow(color: const Color(0xff7a7979,).withOpacity(0.1)),
                                    ],
                                    borderRadius: BorderRadius.circular(20)
                                ),
@@ -562,7 +565,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                    );
                 }
               }
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(),
               );
             },

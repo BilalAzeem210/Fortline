@@ -1,11 +1,7 @@
 import 'dart:convert';
-
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Login_Screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:fortline_customer_app/Screen/get_fcm.dart';
 import 'package:http/http.dart' as http;
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({Key? key}) : super(key: key);
@@ -22,8 +18,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
   int? mobileNo ;
   String _email = "";
   String _password = "";
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-
 
   @override
   Widget build(BuildContext context) {
@@ -219,50 +213,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               child: InkWell(
                                 onTap: () async{
                               _validateAdmin();
-                             /*try {
-                               if (_formState.currentState!.validate()) {
-                                  _isLoading = true;
-                                  setState(() {
 
-                                  });
-                                 final userCred = await _auth.createUserWithEmailAndPassword(
-                                   email: _email,
-                                   password: _password,
-                                 );
-                                 FirebaseFirestore.instance.collection('Customers').add({
-                                   'Customer_Id' : DateTime.now().toString(),
-                                   'Customer_Name' : _name,
-                                   'Customer_Status' : true,
-                                   'Email' : _email,
-                                   'Mobile_No' : mobileNo,
-                                   'Pass' : _password,
-                                   'Registration_Time' : DateTime.now(),
-
-                                 });
-                                 print("signup successful");
-                                setState(() {
-                                  _isLoading = false;
-                                });
-                               }
-
-                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Register Successfully Login First',style: TextStyle(
-                                 color: Colors.red,
-                               ),),
-                               ),
-                               );
-                             }
-                             catch(e){
-                               ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration Failed',style: TextStyle(
-                                 color: Colors.red,
-                               ),),
-                               ),
-                               );
-                               setState(() {
-                                 _isLoading = false;
-                               });
-                               print(e.toString());
-                             }*/
-                            },child: Container(
+                            },
+                                child: Container(
                               width: 150,
                               height: 40,
                               decoration: BoxDecoration(color: const Color(0xfff75a27),
@@ -311,7 +264,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       });
       try{
         print("inside try");
-        String? Token = await FirebaseMessaging.instance.getToken();
+        String? Token;
         var response = await http.post(Uri.http("142.132.194.26:1251","/ords/fortline/reg/post")
             ,headers: <String,String>{
               'Content-Type': 'application/json; charset=UTF-8',
@@ -328,7 +281,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         print(response.statusCode);
         var responseData = jsonDecode(response.body.toString());
         if(responseData.containsKey("successMsg")){
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),content: Text(responseData["successMsg"], style:  TextStyle(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),content: Text(responseData["successMsg"], style:  const TextStyle(
             color: Colors.white,
           ),
           ),
@@ -338,7 +291,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
         else if(responseData.containsKey("msg")) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),content: Text(
             responseData["msg"],
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
             ),
           ),
@@ -346,7 +299,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           );
         }
         else{
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(backgroundColor: const Color(0xfff75a27),content: Text(
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(backgroundColor: Color(0xfff75a27),content: Text(
             "You are already registered",
             style: TextStyle(
               color: Colors.white,
@@ -366,7 +319,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
       catch(e){
         print(e.toString());
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString(),style: TextStyle(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString(),style: const TextStyle(
           color: Color(0xffce0505),
         ),)));
         _isLoading = false;

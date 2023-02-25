@@ -1,15 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.sc.fortline_customer_app"
     >
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
    <application
         android:label="Fortline"
         android:name="${applicationName}"
         android:icon="@mipmap/fortline_icon"
        >
-       <meta-data
-           android:name="com.google.android.gms.ads.APPLICATION_ID"
-           android:value="ca-app-pub-4101133175325037~3033357830"
-           />
         <activity
             android:name=".MainActivity"
             android:exported="true"

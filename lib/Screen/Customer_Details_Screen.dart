@@ -158,7 +158,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                             ),
                             Align(
                               alignment: Alignment.topRight,
-                              child: Text('${NumberFormat.decimalPattern().format(widget.record['invamt'])}',style:const TextStyle(
+                              child: Text(NumberFormat.decimalPattern().format(widget.record['invamt']),style:const TextStyle(
                                 fontSize: 16,
                                 fontFamily: "SpaceGrotesk",
                               ),),
@@ -257,13 +257,13 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                             hintText: "Comments",
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide( color: Color(0xffce0505) ),
+                              borderSide: const BorderSide( color: Color(0xffce0505) ),
                             ),
                           ),
 
                         ),
                       ),
-                      SizedBox(height: 5,),
+                      const SizedBox(height: 5,),
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Align(

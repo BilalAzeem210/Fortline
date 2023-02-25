@@ -1,7 +1,4 @@
 import 'dart:convert';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Customer_Details_Screen.dart';
 import 'package:fortline_customer_app/Screen/Dashboard_Screen.dart';
@@ -19,10 +16,8 @@ class InvoiceDetailScreen extends StatefulWidget {
 }
 
 class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
-
-  User? _currentUser;
   List<Map<String,dynamic>> res = [];
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+
 
 
   @override
@@ -77,54 +72,14 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
                                 );
                               }
                           ),
-                          /*child: FutureBuilder<List<Map<String,dynamic>?>>(
-                      future: getData(),
-                      builder: (context,snapshot){
-                      if(snapshot.hasData){
-                        print("inside future");
-                        print(snapshot.data);
-                        return ListView.builder(
-                           itemCount: res.length,
-                            itemBuilder: (ctx, index){
-                              return  InkWell(
-                                onTap: (){
-                                 Navigator.push(context, MaterialPageRoute(builder: (context) => CustomerDetailsScreen(record: snapshot.data![index]!,),));
-                                },
-                                child:  Card(
 
-                                  child: ListTile(
-                                   title:  Text('Inv: ${snapshot.data![index]!['Invoice_No']}',style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16,
-                                      fontFamily: "SpaceGrotesk",
-                                    ),),
-                                     trailing: Text('Rebate: ${snapshot.data![index]!['Rebate']}',style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16,
-                                      fontFamily: "SpaceGrotesk",
-                                    ),),
-                                  ),),
-                               );
-                            }
-                            );
-                      }
-                      else {
-                        return const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xffce0505),
-                          ),
-                        );
-                      }
-  },
-
-                    ),*/
                         ),
 
                       ],
                     );
                   }
                 }
-                return Center(child: CircularProgressIndicator(),);
+                return const Center(child: CircularProgressIndicator(),);
               },
               future: _getData(),
             ),
@@ -148,7 +103,7 @@ class _InvoiceDetailScreenState extends State<InvoiceDetailScreen> {
     }
     catch(e){
       print(e.toString());
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error fetching invoices")));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Error fetching invoices")));
     }
     return false;
   }
