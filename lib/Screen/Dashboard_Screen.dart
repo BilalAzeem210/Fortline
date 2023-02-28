@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fortline_customer_app/Screen/Invoice_Details_Screen.dart';
 import 'package:fortline_customer_app/Screen/Login_Screen.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:url_launcher/url_launcher.dart' as UrlLauncher;
 import 'package:http/http.dart' as http;
@@ -30,16 +31,48 @@ class _DashboardScreenState extends State<DashboardScreen> {
   var data;
   Future<bool>? _getFutureData;
   Future<String> _getPath() async{
-    Directory? directory = await getExternalStorageDirectory();
-    if(directory != null){
-      print("path: ${directory.path}");
-      return directory.path;
+    print("get path");
+    if(Platform.isAndroid) {
+      Directory? directory = await getExternalStorageDirectory();
+
+      if (directory != null) {
+        print("path: ${directory.path}");
+        String directoryPath = directory.path;
+        String documentsPath = directoryPath.substring(0, directoryPath.indexOf("/Android"));
+        documentsPath = documentsPath;
+        var status = await Permission.storage.status;
+        if (!status.isGranted) {
+          await Permission.storage.request();
+        }
+        if(status.isGranted){
+          Directory dir = await Directory(documentsPath + "/invoices");
+          print("dir PATH ${dir.path}");
+          if(await dir.exists()){
+            print("dir exists");
+            return dir.path;
+          }
+          else{
+            print("creating dir");
+            dir = await dir.create(recursive: true);
+            return dir.path;
+          }
+        }
+      }
     }
-    else{
-      directory = await getApplicationDocumentsDirectory();
-      print("path: ${directory.path}");
-      return directory.path;
+    else if(Platform.isIOS){
+      Directory directory = await getApplicationDocumentsDirectory();
+      if (directory != null) {
+        print("path: ${directory.path}");
+        var status = await Permission.storage.status;
+        if(!status.isGranted){
+          await Permission.storage.request();
+        }
+        if(status.isGranted){
+          return directory.path;
+        }
+      }
     }
+    return "";
 }
   Future<bool> _getData() async{
     try{
@@ -230,13 +263,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     final PdfPage page = document.pages.add();
 // Create a PDF grid class to add tables.
                     final PdfGrid grid = PdfGrid();
-                    grid.columns.add(count: 5);
+                    grid.columns.add(count: 6);
                     final PdfGridRow headerRow = grid.headers.add(1)[0];
                     headerRow.cells[0].value = 'Invoice ID';
                     headerRow.cells[1].value = 'Invoice Date';
                     headerRow.cells[2].value = 'Invoice Amount';
                     headerRow.cells[3].value = 'Rebate Amount';
-                    headerRow.cells[4].value = 'Redeemed by';
+                    headerRow.cells[4].value = 'Redeemed Amount';
+                    headerRow.cells[5].value = 'Balance Rebate';
                     headerRow.style = PdfGridRowStyle(
                         backgroundBrush: PdfBrushes.dimGray,
                         textPen: PdfPens.lightGoldenrodYellow,
@@ -244,6 +278,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         font: PdfStandardFont(PdfFontFamily.timesRoman, 12));
                     PdfGridRow row;
                     grid.style.cellPadding = PdfPaddings(left: 5, top: 5);
+                    int reedeemedAmount = 0;
+                    int totalBalanceRebate = 0;
                     for (int i = 0; i <= data.length; i++) {
                       row = grid.rows.add();
                       if(i == data.length){
@@ -252,8 +288,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         row.cells[2].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
                         row.cells[3].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
                         row.cells[4].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
-                        row.cells[3].value = "Total Amount: ${amount.toString()}";
-                        row.cells[4].value = "Balance: ${balanceRebate.toString()}";
+                        row.cells[5].style = PdfGridCellStyle(borders: PdfBorders(left: PdfPen(PdfColor(255,255,255),width: 0), right: PdfPen(PdfColor(255,255,255),width: 0), top: PdfPen(PdfColor(255,255,255),width: 0), bottom: PdfPen(PdfColor(255,255,255),width: 0)));
+                        row.cells[2].value = amount.toString();
+                        row.cells[3].value = totalRebate.toString();
+                        row.cells[4].value = reedeemedAmount.toString();
+                        row.cells[5].value = totalBalanceRebate.toString();
                         break;
                       }
                       else if(i % 2 == 0){
@@ -279,11 +318,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       row.cells[3].value = record["rewrdamt"].toString();
                       var redeemed = record["invstsid"];
                       if(redeemed != null){
-                        row.cells[4].value = redeemed;
+                        reedeemedAmount = record["rewrdamt"] + reedeemedAmount;
+                        row.cells[4].value = record["rewrdamt"].toString();
                       }
                       else{
-                        row.cells[4].value = "-";
+                        row.cells[4].value = "0";
                       }
+                      var balanceRebate = record["rewrdamt"] - int.parse(row.cells[4].value);
+                      row.cells[5].value = balanceRebate.toString();
+                      totalBalanceRebate = balanceRebate + totalBalanceRebate;
                     }
                     grid.draw(
                         page: page,

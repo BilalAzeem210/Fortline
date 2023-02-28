@@ -6,7 +6,8 @@
    <application
         android:label="Fortline"
         android:name="${applicationName}"
-        android:icon="@mipmap/fortline_icon"
+        android:icon="@mipmap/ic_launcher"
+       android:requestLegacyExternalStorage="true"
        >
         <activity
             android:name=".MainActivity"
